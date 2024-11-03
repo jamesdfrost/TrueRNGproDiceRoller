@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO.Ports;
 using System.ComponentModel;  // for BackgroundWorker
 using Console = System.Console;
+using System.Timers;
 
 
 namespace TrueRNGRanger
@@ -326,7 +327,7 @@ namespace TrueRNGRanger
 
         static void worker_ProgressChanged(object _, ProgressChangedEventArgs e)
         {
-            Console.WriteLine("Buffer size: {0:d}", e.ProgressPercentage);
+            //Console.WriteLine("Buffer size: {0:d}", e.ProgressPercentage);
         }
 
         static void worker_streamRandomBytes(object sender, DoWorkEventArgs e)
@@ -426,53 +427,37 @@ namespace TrueRNGRanger
             worker.WorkerSupportsCancellation = true;
 
             worker.RunWorkerAsync();
+            long elap;
 
             //Console.ReadKey(true);  // event loop
 
-            var stopwatch = new Stopwatch();
-            long[] results = new long[101];
-            double[] perf = new double[101];
-            long i;
 
+
+            double[] perf = new double[101];
+
+            var stopwatch = new Stopwatch();
+            stopwatch.Reset();
+            stopwatch.Start();
             //int diefaces = 6;
             int numdie = 1;
             int[] supportedDie = { 2, 4, 6, 8, 10, 12, 20, 100 };
-
+            Task[] rollDiceTask = new Task[supportedDie.Length];
+            int i= 0;
             foreach (int diefaces in supportedDie)
             {
-                for (int j = 0; j <= 100; j++)
-                    results[j] = 0;
-                stopwatch.Reset();
-                stopwatch.Start();
-                Console.Write("Starting....");
+                int numRolls = 10000000;
+                // Code to test parallel running rollDiceTask[i] = Task.Run(() => TestDie(numdie, diefaces, numRolls));
 
-                for (i = 0; i < 1000000; i++)
-                {
-
-                    int rol = RollDice(diefaces, numdie);
-                    results[rol]++;
-
-                }
-                var elap = stopwatch.ElapsedMilliseconds;
-                for (int j = 0; j < 101; j++)
-                {
-                    if (results[j] > 0)
-                    {
-                        double freq = (double)i / (double)results[j];
-                        double var = freq - (double)diefaces;
-
-                        Console.WriteLine(j.ToString() + ": " + results[j].ToString() + " rolls. Frequency 1:" + freq.ToString() + "   --  Variance " + var.ToString());
-
-                    }
-
-                }
-
-                Console.WriteLine("ms: " + elap.ToString());
-                Console.WriteLine("chars: " + i.ToString());
-                perf[diefaces] = ((i) / (elap / 1000.0));
-                Console.WriteLine("rate: " + ((i) / (elap / 1000.0)).ToString() + " rolls per second");
-
+                elap = TestDie(numdie, diefaces, numRolls);
+                perf[diefaces] = ((numRolls) / (elap / 1000.0));
+                i++;
             }
+            //Task.WaitAll(rollDiceTask);
+           
+            elap = stopwatch.ElapsedMilliseconds;
+            Console.WriteLine("\n\nElapsed: " + elap.ToString()+ "\n\n\n");
+
+
             foreach (int diefaces in supportedDie)
             {
                 Console.WriteLine("die: " + diefaces.ToString() + "    -  " + perf[diefaces] + " rolls per second");
@@ -492,5 +477,185 @@ namespace TrueRNGRanger
 
         }
 
+        private static long TestDie(int numdie, int diefaces, int rolls)
+        {
+            long i,elap;
+            int pc10 = rolls / 10;
+
+            Console.Write("Starting....");
+            long[] results = new long[101];
+            for (int j = 0; j <= 100; j++)
+                results[j] = 0;
+            var stopwatch = new Stopwatch();
+            stopwatch.Reset();
+            stopwatch.Start();
+            for (int pc = 10; pc <= 100; pc = pc + 10)
+            {
+                for (i = 0; i < pc10; i++)
+                {
+
+                    int rol = RollDice(diefaces, numdie);
+                    results[rol]++;
+
+                }
+                Console.WriteLine("Worker: D{0:D} - {1:D}%", diefaces,pc);
+            }
+            elap = stopwatch.ElapsedMilliseconds;
+            for (int j = 0; j < 101; j++)
+            {
+                if (results[j] > 0)
+                {
+                    double freq = (double)rolls / (double)results[j];
+                    double var = freq - (double)diefaces;
+
+                    Console.WriteLine(j.ToString() + ": " + results[j].ToString() + " rolls. Frequency 1:" + freq.ToString() + "   --  Variance " + var.ToString());
+
+                }
+
+            }
+
+            Console.WriteLine("ms: " + elap.ToString());
+            Console.WriteLine("rolls: " + rolls.ToString());
+            Console.WriteLine("rate: " + ((rolls) / (elap / 1000.0)).ToString() + " rolls per second");
+            return elap;
+        }
+
+        public static double ChiSquarePval(double x, int df)
+        {
+            // x = a computed chi-square value.
+            // df = degrees of freedom.
+            // output = prob. x value occurred by chance.
+            // ACM 299.
+            if (x <= 0.0 || df < 1)
+                throw new Exception("Bad arg in ChiSquarePval()");
+            double a = 0.0; // 299 variable names
+            double y = 0.0;
+            double s = 0.0;
+            double z = 0.0;
+            double ee = 0.0; // change from e
+            double c;
+            bool even; // Is df even?
+            a = 0.5 * x;
+            if (df % 2 == 0) even = true; else even = false;
+            if (df > 1) y = Exp(-a); // ACM update remark (4)
+            if (even == true) s = y;
+            else s = 2.0 * Gauss(-Math.Sqrt(x));
+            if (df > 2)
+            {
+                x = 0.5 * (df - 1.0);
+                if (even == true) z = 1.0; else z = 0.5;
+                if (a > 40.0) // ACM remark (5)
+                {
+                    if (even == true) ee = 0.0;
+                    else ee = 0.5723649429247000870717135;
+                    c = Math.Log(a); // log base e
+                    while (z <= x)
+                    {
+                        ee = Math.Log(z) + ee;
+                        s = s + Exp(c * z - a - ee); // ACM update remark (6)
+                        z = z + 1.0;
+                    }
+                    return s;
+                } // a > 40.0
+                else
+                {
+                    if (even == true) ee = 1.0;
+                    else
+                        ee = 0.5641895835477562869480795 / Math.Sqrt(a);
+                    c = 0.0;
+                    while (z <= x)
+                    {
+                        ee = ee * (a / z); // ACM update remark (7)
+                        c = c + ee;
+                        z = z + 1.0;
+                    }
+                    return c * y + s;
+                }
+            } // df > 2
+            else
+            {
+                return s;
+            }
+        } // ChiSquarePval()
+        private static double Exp(double x)
+        {
+            if (x < -40.0) // ACM update remark (8)
+                return 0.0;
+            else
+                return Math.Exp(x);
+        }
+        public static double Gauss(double z)
+        {
+            // input = z-value (-inf to +inf)
+            // output = p under Normal curve from -inf to z
+            // ACM Algorithm #209
+            double y; // 209 scratch variable
+            double p; // result. called ‘z’ in 209
+            double w; // 209 scratch variable
+            if (z == 0.0)
+                p = 0.0;
+            else
+            {
+                y = Math.Abs(z) / 2;
+                if (y >= 3.0)
+                {
+                    p = 1.0;
+                }
+                else if (y < 1.0)
+                {
+                    w = y * y;
+                    p = ((((((((0.000124818987 * w
+                      - 0.001075204047) * w + 0.005198775019) * w
+                      - 0.019198292004) * w + 0.059054035642) * w
+                      - 0.151968751364) * w + 0.319152932694) * w
+                      - 0.531923007300) * w + 0.797884560593) * y
+                      * 2.0;
+                }
+                else
+                {
+                    y = y - 2.0;
+                    p = (((((((((((((-0.000045255659 * y
+                      + 0.000152529290) * y - 0.000019538132) * y
+                      - 0.000676904986) * y + 0.001390604284) * y
+                      - 0.000794620820) * y - 0.002034254874) * y
+                     + 0.006549791214) * y - 0.010557625006) * y
+                     + 0.011630447319) * y - 0.009279453341) * y
+                     + 0.005353579108) * y - 0.002141268741) * y
+                     + 0.000535310849) * y + 0.999936657524;
+                }
+            }
+            if (z > 0.0)
+                return (p + 1.0) / 2;
+            else
+                return (1.0 - p) / 2;
+        } // Gauss()
+        public static double ChiFromProbs(int[] observed, double[] probs)
+        {
+            int n = observed.Length;
+            int sumObs = 0;
+            for (int i = 0; i < n; ++i)
+                sumObs += observed[i];
+            double[] expected = ExpectedFromProbs(probs, sumObs);
+            return ChiFromFreqs(observed, expected);
+        }
+
+        public static double[] ExpectedFromProbs(double[] probs,
+  int N)
+        {
+            double[] expected = new double[probs.Length];
+            for (int i = 0; i < probs.Length; ++i)
+                expected[i] = probs[i] * N;
+            return expected;
+        }
+        public static double ChiFromFreqs(int[] observed,  double[] expected)
+        {
+            double sum = 0.0;
+            for (int i = 0; i < observed.Length; ++i)
+            {
+                sum += ((observed[i] - expected[i]) *
+                  (observed[i] - expected[i])) / expected[i];
+            }
+            return sum;
+        }
     }
 }
