@@ -35,13 +35,23 @@
             return ChiFromFreqs(observed, expected);
         }
 
+        public static double ChiFromProbs(long[] observed, double[] probs, int length)
+        {
+            int n = length;
+            long sumObs = 0;
+            for (int i = 0; i < n; ++i)
+                sumObs += observed[i];
+            double[] expected = ExpectedFromProbs(probs, sumObs);
+            return ChiFromFreqs(observed, expected);
+        }
+
         public static double ChiSquarePval(double x, int df)
         {
             // x = a computed chi-square value.
             // df = degrees of freedom.
             // output = prob. x value occurred by chance.
             // ACM 299.
-            if (x <= 0.0 || df < 1)
+            if (x < 0.0 || df < 1)
                 throw new Exception("Bad arg in ChiSquarePval()");
             double a = 0.0; // 299 variable names
             double y = 0.0;

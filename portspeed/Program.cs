@@ -6,6 +6,7 @@ using System.IO.Ports;
 using System.ComponentModel;  // for BackgroundWorker
 using Console = System.Console;
 using System.Timers;
+using static TrueRNGRanger.DiceClass;
 
 
 namespace TrueRNGRanger
@@ -34,34 +35,42 @@ namespace TrueRNGRanger
 
 
 
-            double[] perf = new double[101];
+            double[] perf = new double[257];
 
             var stopwatch = new Stopwatch();
             stopwatch.Reset();
             stopwatch.Start();
             //int diefaces = 6;
-            int numdie = 1;
-            int[] supportedDie = { 2, 4, 6, 8, 10, 12, 20, 100 };
+
+
+            //int[] supportedDie = { 2, 6,  20, 100 };
+            int[] supportedDie = { 2 };
+            dieEval[] dieEvals = new dieEval[supportedDie.Length];
+
             Task[] rollDiceTask = new Task[supportedDie.Length];
             int i = 0;
+
             foreach (int diefaces in supportedDie)
             {
-                int numRolls = 100000000;
+                int numRolls = 200000;
                 // Code to test parallel running rollDiceTask[i] = Task.Run(() => TestDie(numdie, diefaces, numRolls));
-
-                elap = DiceClass.TestDie(numdie, diefaces, numRolls);
-                perf[diefaces] = ((numRolls) / (elap / 1000.0));
+                Console.WriteLine("Testing D{0:D}", diefaces);
+                dieEvals[i] = DiceClass.TestDie(diefaces, numRolls, 1000000, false,@"d:\temp\D"+diefaces.ToString()+".csv");
+                // perf[diefaces] = ((numRolls) / (elap / 1000.0));
                 i++;
             }
+
             //Task.WaitAll(rollDiceTask);
 
             elap = stopwatch.ElapsedMilliseconds;
-            Console.WriteLine("\n\nElapsed: " + elap.ToString() + "\n\n\n");
-
-
-            foreach (int diefaces in supportedDie)
+            Console.WriteLine("\n\nTotal Elapsed: " + elap.ToString() + "\n\n\n");
+            string fair = "";
+            Console.WriteLine("DieFaces,Rolls,Seconds,AvgP,stdDev,Fair,RollsPerSec");
+            foreach (dieEval die in dieEvals)
             {
-                Console.WriteLine("die: " + diefaces.ToString() + "    -  " + perf[diefaces] + " rolls per second");
+                if (die.fair) fair = "FAIR"; else fair = "UNFAIR";
+
+                Console.WriteLine("{0:D},{1:D},{2:N},{3:N},{4:N},{5},{6:D}", die.diefaces,die.rolls,die.seconds,die.avgP,die.stdDev,fair, (long)(die.rolls/ die.seconds));
             }
 
 

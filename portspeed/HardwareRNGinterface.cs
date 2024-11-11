@@ -32,7 +32,7 @@ namespace TrueRNGRanger
 
         static internal void worker_streamRandomBytes(object sender, DoWorkEventArgs e)
         {
-            string strPort = "NONE"; //COM port your RNG is connected to. Should really move this to a config setting. Set to NONE if you want to use internal Pseudo Random number generator for testing purpose.
+            string strPort = "COM4"; //COM port your RNG is connected to. Should really move this to a config setting. Set to NONE if you want to use internal Pseudo Random number generator for testing purpose.
             int numBytesToRead = 16; //Number of bytes to try and read at once from the RNG. Depending on your RNG, this setting could be worth tweaking (up/down) to see if it impacts performance.
             int bufferSize = 10000000; //Size of buffer needed. Higher values will use more memory, but the buffer is generally way faster than reading off the RNG so if your workload is peaky having a large buffer being constantly updated can have a big (positive) impact on performance
             Random rand = new Random(); //only needed if using NONE above.
@@ -84,6 +84,7 @@ namespace TrueRNGRanger
                             for (int j = 0; j < byread; j++)
                             {
                                 byte readDataByte = buffer[j];
+                                //if (readDataByte == 0 && j <=4) readDataByte = 1; //introduce a small bias....
                                 _randomBytes.Push(readDataByte);
                             }
 
