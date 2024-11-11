@@ -44,7 +44,8 @@ namespace TrueRNGRanger
 
 
             //int[] supportedDie = { 2, 6,  20, 100 };
-            int[] supportedDie = { 2 };
+            //int[] supportedDie = { 12 };
+            int[] supportedDie = { 2,4,6,8,10,12,20,100,256 };
             dieEval[] dieEvals = new dieEval[supportedDie.Length];
 
             Task[] rollDiceTask = new Task[supportedDie.Length];
@@ -52,10 +53,10 @@ namespace TrueRNGRanger
 
             foreach (int diefaces in supportedDie)
             {
-                int numRolls = 200000;
+                int numRolls = 20000;
                 // Code to test parallel running rollDiceTask[i] = Task.Run(() => TestDie(numdie, diefaces, numRolls));
                 Console.WriteLine("Testing D{0:D}", diefaces);
-                dieEvals[i] = DiceClass.TestDie(diefaces, numRolls, 1000000, false,@"d:\temp\D"+diefaces.ToString()+".csv");
+                dieEvals[i] = DiceClass.TestDie(diefaces, numRolls, 100000, false,@"d:\temp\D"+diefaces.ToString()+".csv");
                 // perf[diefaces] = ((numRolls) / (elap / 1000.0));
                 i++;
             }

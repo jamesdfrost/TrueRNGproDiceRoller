@@ -85,8 +85,10 @@ namespace TrueRNGRanger
                     {
                         _die4stack.Push((byte)((readDataByte % 4) + 1));
                         _die4stack.Push((byte)(((readDataByte / 4) % 4) + 1));
+                        _die4stack.Push((byte)(((readDataByte / 16) % 4) + 1));
                         _die4stack.Push((byte)(((readDataByte / 64) % 4) + 1));
                     }
+
                     if (die == 6)
                     {
                         if (readDataByte <= 216)
@@ -104,11 +106,31 @@ namespace TrueRNGRanger
                     }
                     if (die == 8)
                     {
-                        if (readDataByte <= 64)
+                        byte[] readBytes = new byte[2];
+                        int x = 0;
+                        while (x < 2)
                         {
-                            _die8stack.Push((byte)((readDataByte % 8) + 1));
-                            _die8stack.Push((byte)(((readDataByte / 8) % 8) + 1));
+                            success = HardwareRNGinterface._randomBytes.TryPop(out readBytes[x]);
+                            if (success) x++;
                         }
+                        long bigVal = ((long)readByte * 65536) + ((long)readBytes[0] * 256) + ((long)readBytes[1] ) ;
+
+
+
+
+
+                        // if (readDataByte <= 64)
+                        //{
+                        _die8stack.Push((byte)((bigVal % 8) + 1));
+                        _die8stack.Push((byte)(((bigVal / 8) % 8) + 1));
+                        _die8stack.Push((byte)(((bigVal / 64) % 8) + 1));
+                        _die8stack.Push((byte)(((bigVal / 512) % 8) + 1));
+                        _die8stack.Push((byte)(((bigVal / 4096) % 8) + 1));
+                        _die8stack.Push((byte)(((bigVal / 32768) % 8) + 1));
+                        _die8stack.Push((byte)(((bigVal / 262144) % 8) + 1));
+                        _die8stack.Push((byte)(((bigVal / 2097152) % 8) + 1));
+
+                        /*}
                         else if (readDataByte <= 128)
                         {
                             _die8stack.Push((byte)(((readDataByte - 64) % 8) + 1));
@@ -123,68 +145,99 @@ namespace TrueRNGRanger
                         {
                             _die8stack.Push((byte)(((readDataByte - 192) % 8) + 1));
                             _die8stack.Push((byte)((((readDataByte - 192) / 8) % 8) + 1));
-                        }
+                        }*/
 
                     }
                     if (die == 10)
                     {
-                        if (readDataByte <= 100)
+                        byte[] readBytes = new byte[5];
+                        int x = 0;
+                        while (x < 4)
                         {
-                            _die10stack.Push((byte)((readDataByte % 10) + 1));
-                            _die10stack.Push((byte)(((readDataByte / 10) % 10) + 1));
+                            success = HardwareRNGinterface._randomBytes.TryPop(out readBytes[x]);
+                            if (success) x++;
                         }
-                        else if (readDataByte <= 200)
+                        long bigVal =  ((long)readBytes[0] * 4294967296) + ((long)readBytes[1] * 16777216) + ((long)readBytes[2] * 65536) + ((long)readBytes[3] * 256) + (long)(readByte);
+
+                        if (bigVal <= 1000000000000)
                         {
-                            _die10stack.Push((byte)(((readDataByte - 100) % 10) + 1));
-                            _die10stack.Push((byte)((((readDataByte - 100) / 10) % 10) + 1));
-                        }
-                        else if (readDataByte <= 210)
-                        {
-                            _die10stack.Push((byte)(((readDataByte - 200) % 10) + 1));
-                        }
-                        else if (readDataByte <= 220)
-                        {
-                            _die10stack.Push((byte)(((readDataByte - 210) % 10) + 1));
-                        }
-                        else if (readDataByte <= 230)
-                        {
-                            _die10stack.Push((byte)(((readDataByte - 220) % 10) + 1));
-                        }
-                        else if (readDataByte <= 240)
-                        {
-                            _die10stack.Push((byte)(((readDataByte - 230) % 10) + 1));
-                        }
-                        else if (readDataByte <= 250)
-                        {
-                            _die10stack.Push((byte)(((readDataByte - 240) % 10) + 1));
+                            _die10stack.Push((byte)((bigVal % 10) + 1));
+                            _die10stack.Push((byte)(((bigVal / 10) % 10) + 1));
+                            _die10stack.Push((byte)(((bigVal / 100) % 10) + 1));
+                            _die10stack.Push((byte)(((bigVal / 1000) % 10) + 1));
+                            _die10stack.Push((byte)(((bigVal / 10000) % 10) + 1));
+                            _die10stack.Push((byte)(((bigVal / 100000) % 10) + 1));
+                            _die10stack.Push((byte)(((bigVal / 1000000) % 10) + 1));
+                            _die10stack.Push((byte)(((bigVal / 10000000) % 10) + 1));
+                            _die10stack.Push((byte)(((bigVal / 100000000) % 10) + 1));
+                            _die10stack.Push((byte)(((bigVal / 1000000000) % 10) + 1));
+                            _die10stack.Push((byte)(((bigVal / 10000000000) % 10) + 1));
+                            _die10stack.Push((byte)(((bigVal / 100000000000) % 10) + 1));
+
+
                         }
 
                     }
                     if (die == 12)
                     {
-                        if (readDataByte <= 144)
+                        byte[] readBytes = new byte[5];
+                        int x = 0;
+                        while (x < 4)
                         {
-                            _die12stack.Push((byte)((readDataByte % 12) + 1));
-                            _die12stack.Push((byte)(((readDataByte / 12) % 12 + 1)));
+                            success = HardwareRNGinterface._randomBytes.TryPop(out readBytes[x]);
+                            if (success) x++;
                         }
-                        else if (readDataByte <= 252)
+                        long bigVal = ((long)readBytes[0] * 4294967296) + ((long)readBytes[1] * 16777216) + ((long)readBytes[2] * 65536) + ((long)readBytes[3] * 256) + (long)(readByte);
+
+                        if (bigVal <= 743008370688)
                         {
-                            _die12stack.Push((byte)(((readDataByte - 144) % 12) + 1));
+
+                            _die12stack.Push((byte)((bigVal % 12) + 1));
+                            _die12stack.Push((byte)(((bigVal / 12) % 12 + 1)));
+                            _die12stack.Push((byte)(((bigVal / 144) % 12 + 1)));
+                            _die12stack.Push((byte)(((bigVal / 1728) % 12 + 1)));
+                            _die12stack.Push((byte)(((bigVal / 20736) % 12 + 1)));
+                            _die12stack.Push((byte)(((bigVal / 248832) % 12 + 1)));
+                            _die12stack.Push((byte)(((bigVal / 2985984) % 12 + 1)));
+                            _die12stack.Push((byte)(((bigVal / 35831808) % 12 + 1)));
+                            _die12stack.Push((byte)(((bigVal / 429981696) % 12 + 1)));
+                            _die12stack.Push((byte)(((bigVal / 5159780352) % 12 + 1)));
+                            _die12stack.Push((byte)(((bigVal / 61917364224) % 12 + 1)));
+
+
+                        }
+                        else if (bigVal <= 1052595191808)
+                        {
+                            bigVal -= 743008370688;
+                            _die12stack.Push((byte)((bigVal % 12) + 1));
+                            _die12stack.Push((byte)(((bigVal / 12) % 12 + 1)));
+                            _die12stack.Push((byte)(((bigVal / 144) % 12 + 1)));
+                            _die12stack.Push((byte)(((bigVal / 1728) % 12 + 1)));
+                            _die12stack.Push((byte)(((bigVal / 20736) % 12 + 1)));
+                            _die12stack.Push((byte)(((bigVal / 248832) % 12 + 1)));
+                            _die12stack.Push((byte)(((bigVal / 2985984) % 12 + 1)));
+                            _die12stack.Push((byte)(((bigVal / 35831808) % 12 + 1)));
+                            _die12stack.Push((byte)(((bigVal / 429981696) % 12 + 1)));
+                            _die12stack.Push((byte)(((bigVal / 5159780352) % 12 + 1)));
+
 
                         }
 
 
                     }
-                    if (die == 20)
+                    /*if (die == 20)
                     {
                         if (readDataByte <= 240)
                         {
                             _die20stack.Push((byte)((readDataByte % 20) + 1));
                         }
 
-                    }
-                    /*if (die == 20)
+                    }*/
+                    if (die == 20)
                     {
+                        // make D20 by taking groups of 5 bytes, which produces a range from 1- 281,474,976,710,656 which more closely aligns with powers of 20 ( 1 x 20^11+7* 20^10 ) -  276,480,000,000,000 
+
+
                         byte[] readBytes = new byte[5];
                         int x = 0;
                         while (x < 5)
@@ -192,21 +245,77 @@ namespace TrueRNGRanger
                             success = HardwareRNGinterface._randomBytes.TryPop(out readBytes[x]);
                             if (success) x++;
                         }
-                        //long bigVal=readByte*
+                        long bigVal =  ((long)readByte * 1099511627776) + ((long)readBytes[0] * 4294967296) + ((long)readBytes[1] * 16777216) + ((long)readBytes[2] * 65536) + ((long)readBytes[3] * 256 ) + (long)(readBytes[4]);
 
-                            if (readDataByte <= 240)
+
+
+                            if (bigVal <= 204800000000000)
                         {
-                            _die20stack.Push((byte)((readDataByte % 20) + 1));
-                        }
+                            _die20stack.Push((byte)((bigVal % 20) + 1));
+                            _die20stack.Push((byte)(((bigVal / 20) % 20) + 1));
+                            _die20stack.Push((byte)(((bigVal / 400) % 20) + 1));
+                            _die20stack.Push((byte)(((bigVal / 8000) % 20) + 1));
+                            _die20stack.Push((byte)(((bigVal / 160000) % 20) + 1));
+                            _die20stack.Push((byte)(((bigVal / 3200000) % 20) + 1));
+                            _die20stack.Push((byte)(((bigVal / 64000000) % 20) + 1));
+                            _die20stack.Push((byte)(((bigVal / 1280000000) % 20) + 1));
+                            _die20stack.Push((byte)(((bigVal / 25600000000) % 20) + 1));
+                            _die20stack.Push((byte)(((bigVal / 512000000000) % 20) + 1));
+                            _die20stack.Push((byte)(((bigVal / 10240000000000) % 20) + 1));
 
-                    }*/
+                        }
+                            else if (bigVal <= 276480000000000)
+                        {
+                            bigVal = bigVal - 204800000000000;
+                            _die20stack.Push((byte)((bigVal % 20) + 1));
+                            _die20stack.Push((byte)(((bigVal / 20) % 20) + 1));
+                            _die20stack.Push((byte)(((bigVal / 400) % 20) + 1));
+                            _die20stack.Push((byte)(((bigVal / 8000) % 20) + 1));
+                            _die20stack.Push((byte)(((bigVal / 160000) % 20) + 1));
+                            _die20stack.Push((byte)(((bigVal / 3200000) % 20) + 1));
+                            _die20stack.Push((byte)(((bigVal / 64000000) % 20) + 1));
+                            _die20stack.Push((byte)(((bigVal / 1280000000) % 20) + 1));
+                            _die20stack.Push((byte)(((bigVal / 25600000000) % 20) + 1));
+                            _die20stack.Push((byte)(((bigVal / 512000000000) % 20) + 1));
+                        }
+                    }
                     if (die == 100)
                     {
-                        if (readDataByte <= 100)
-                            _die100stack.Push((byte)((readDataByte % 100) + 1));
-                        else if (readDataByte <= 200)
-                            _die100stack.Push((byte)(((readDataByte - 100) % 100) + 1));
 
+
+
+                        byte[] readBytes = new byte[4];
+                        int x = 0;
+                        while (x < 4)
+                        {
+                            success = HardwareRNGinterface._randomBytes.TryPop(out readBytes[x]);
+                            if (success) x++;
+                        }
+                        long bigVal =  ((long)readBytes[0] * 4294967296) + ((long)readBytes[1] * 16777216) + ((long)readBytes[2] * 65536) + ((long)readBytes[3] * 256) + (long)(readByte);
+
+
+
+                        if (bigVal <= 1000000000000)
+
+                        {
+
+                            _die100stack.Push((byte)((bigVal % 100) + 1));
+                            _die100stack.Push((byte)((bigVal/ 100)%100 + 1));
+                            _die100stack.Push((byte)((bigVal/ 10000) % 100 + 1));
+                            _die100stack.Push((byte)((bigVal/ 1000000) % 100 + 1));
+                            _die100stack.Push((byte)((bigVal/ 100000000) % 100 + 1));
+                            _die100stack.Push((byte)((bigVal/ 10000000000) % 100 + 1));
+                        }
+                        else if (bigVal <= 1090000000000)
+                        {
+                            bigVal -= 1000000000000;
+                            _die100stack.Push((byte)((bigVal % 100) + 1));
+                            _die100stack.Push((byte)((bigVal / 100) % 100 + 1));
+                            _die100stack.Push((byte)((bigVal / 10000) % 100 + 1));
+                            _die100stack.Push((byte)((bigVal / 1000000) % 100 + 1));
+                            _die100stack.Push((byte)((bigVal / 100000000) % 100 + 1));
+
+                        }
                     }
                     if (die == 256)
                     {
@@ -492,7 +601,7 @@ namespace TrueRNGRanger
                 double maxStPeter = Math.Pow(diefaces, maxBatchInARow+1);
                 newLine = string.Format("{0},{1},{2},{3},{4},{5},{6}", x.ToString(),chi.ToString(),pval.ToString(), maxStPeter.ToString(),(stPeter/(double)rolls).ToString(),rollResults, inaRowResults);
                 csv.AppendLine(newLine);
-                Console.WriteLine("Completed batch {0:D}", x);
+                //Console.WriteLine("Completed batch {0:D}", x);
 
             }
             elap = stopwatch.ElapsedMilliseconds;
