@@ -84,7 +84,7 @@ namespace TrueRNGRanger
                             for (int j = 0; j < byread; j++)
                             {
                                 byte readDataByte = buffer[j];
-                                //if (readDataByte == 0 && j <=4) readDataByte = 1; //introduce a small bias....
+                                //if (readDataByte == 0 && j <=2) readDataByte = 1; //introduce a small bias....
                                 _randomBytes.Push(readDataByte);
                             }
 
