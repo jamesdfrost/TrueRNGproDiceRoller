@@ -24,19 +24,20 @@ namespace portspeed
             dieEval dieFeedback = new dieEval();
             dieFeedback.diefaces = diefaces;
             long i, elap;
-            int pc10 = rolls / 10;
             double stPeter;
             double[] pvals = new double[repetitions];
 
             double[] results = new double[diefaces];
-            var stopwatch = new Stopwatch();
+
             int maxRoll = diefaces;
             long[] inarow = new long[100];
             double[] pDist = new double[10];
             double[] expected = new double[diefaces];
             int currentInARow = 0;
-            stopwatch.Reset();
+
+            var stopwatch = new Stopwatch();
             stopwatch.Start();
+
             double runningP = 0;
             const int totalTicks = 100;
             var options = new ProgressBarOptions
